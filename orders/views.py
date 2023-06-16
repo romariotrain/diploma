@@ -23,8 +23,10 @@ from orders.signals import new_order, new_user_registered
 
 
 class PartnerUpdate(APIView):
-
-    def post(request, *args, **kwargs):
+    """
+    Класс для обновления прайса от поставщика
+    """
+    def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
 
@@ -97,8 +99,13 @@ class RegisterAccount(CreateAPIView):
 
 
 class ConfirmAccount(APIView):
-
+    """
+    Класс для подтверждения почтового адреса
+    """
+    # Регистрация методом POST
     def post(self, request, *args, **kwargs):
+
+        # проверяем обязательные аргументы
         if {'email', 'token'}.issubset(request.data):
 
             token = ConfirmEmailToken.objects.filter(user__email=request.data['email'],
