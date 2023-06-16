@@ -6,11 +6,10 @@ from django_rest_passwordreset.signals import reset_password_token_created
 from orders.models import ConfirmEmailToken, CustomUser
 
 new_user_registered = Signal(
-    providing_args=['user_id'],
 )
 
 new_order = Signal(
-    providing_args=['user_id'],
+
 )
 
 
@@ -67,7 +66,7 @@ def new_order_signal(user_id, **kwargs):
     отправяем письмо при изменении статуса заказа
     """
     # send an e-mail to the user
-    user = User.objects.get(id=user_id)
+    user = CustomUser.objects.get(id=user_id)
 
     msg = EmailMultiAlternatives(
         # title:

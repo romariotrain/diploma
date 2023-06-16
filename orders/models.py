@@ -2,7 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-
+from django_rest_passwordreset.tokens import get_token_generator
 
 USER_TYPE_CHOICES = (
     ('shop', 'Магазин'),
@@ -44,6 +44,7 @@ class UserManager(BaseUserManager):
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
         return self.create_user(email, password, **extra_fields)
 
 
@@ -178,17 +179,17 @@ class ConfirmEmailToken(models.Model):
         CustomUser,
         related_name='confirm_email_tokens',
         on_delete=models.CASCADE,
-        verbose_name=_("The User which is associated to this password reset token")
+        verbose_name=("The User which is associated to this password reset token")
     )
 
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name=_("When was this token generated")
+        verbose_name=("When was this token generated")
     )
 
     # Key field, though it is not the primary key of the model
     key = models.CharField(
-        _("Key"),
+        ("Key"),
         max_length=64,
         db_index=True,
         unique=True

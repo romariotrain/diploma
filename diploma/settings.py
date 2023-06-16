@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
+    'django_rest_passwordreset'
 ]
 
 MIDDLEWARE = [
@@ -83,9 +84,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'orders',
         'HOST': '127.0.0.1',
-        'PORT': '5431',
+        'PORT': '5432',
         'USER': 'postgres',
-        'PASSWORD': '1234',
+        'PASSWORD': 'Roma2003',
     }
 }
 
@@ -145,3 +146,13 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_TLS = True
+
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_HOST_USER = 'romamorozevich@yandex.ru'
+EMAIL_HOST_PASSWORD = 'msoafvovsmlcavxi'
+EMAIL_PORT = '465'
+EMAIL_USE_SSL = True
+SERVER_EMAIL = EMAIL_HOST_USER

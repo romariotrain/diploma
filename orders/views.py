@@ -1,5 +1,6 @@
 import yaml
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q, Sum, F
@@ -18,12 +19,12 @@ from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 
+from orders.signals import new_order, new_user_registered
+
 
 class PartnerUpdate(APIView):
-    """
-    Класс для обновления прайса от поставщика
-    """
-    def post(self, request, *args, **kwargs):
+
+    def post(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
 
@@ -80,10 +81,15 @@ class RegisterAccount(CreateAPIView):
             user_serializer = CustomUserSerializer(data=request.data)
             if user_serializer.is_valid():
                 user = user_serializer.save()
-                password = request.data.get('password1')
-                user.set_password(password)
-                user.save()
-                return Response({'detail': 'User created successfully'})
+                password1 = request.data.get('password1')
+                password2 = request.data.get('password2')
+                if password1 == password2:
+                    user.set_password(password1)
+                    user.save()
+                    new_user_registered.send(sender=self.__class__, user_id=user.id)
+                    return Response({'detail': 'User created successfully'})
+                else:
+                    return HttpResponse('Пароли не совпадают')
             else:
                 return HttpResponse('!!!')
         else:
@@ -91,13 +97,8 @@ class RegisterAccount(CreateAPIView):
 
 
 class ConfirmAccount(APIView):
-    """
-    Класс для подтверждения почтового адреса
-    """
-    # Регистрация методом POST
-    def post(self, request, *args, **kwargs):
 
-        # проверяем обязательные аргументы
+    def post(self, request, *args, **kwargs):
         if {'email', 'token'}.issubset(request.data):
 
             token = ConfirmEmailToken.objects.filter(user__email=request.data['email'],
@@ -117,17 +118,42 @@ class ConfirmAccount(APIView):
 
 
 class AccountDetails(APIView):
-    """
-    Класс для работы данными пользователя
-    """
 
-    # получить данные
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
 
         serializer = CustomUserSerializer(request.user)
         return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+        # проверяем обязательные аргументы
+
+        if 'password1' and 'password2' in request.data:
+            password1 = request.data.get('password1')
+            password2 = request.data.get('password2')
+            errors = {}
+            if password1 == password2:
+                try:
+                    validate_password(request.data['password1'])
+                except Exception as password_error:
+                    error_array = []
+                    for item in password_error:
+                        error_array.append(item)
+                    return JsonResponse({'Status': False, 'Errors': {'password': error_array}})
+                else:
+                    request.user.set_password(request.data['password1'])
+            else:
+                return HttpResponse('Пароли не совпадают')
+
+        user_serializer = CustomUserSerializer(request.user, data=request.data, partial=True)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return JsonResponse({'Status': True})
+        else:
+            return JsonResponse({'Status': False, 'Errors': user_serializer.errors})
 
 
 class LoginAccount(APIView):
@@ -143,9 +169,9 @@ class LoginAccount(APIView):
 
                     return JsonResponse({'Status': True, 'Token': token.key})
 
-            return JsonResponse({'Status': False, 'Errors': 'Не удалось авторизовать'})
+            return Response({'Status': False, 'Errors': 'Не удалось авторизовать'})
 
-        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+        return Response({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
 
 class CategoryView(ListAPIView):

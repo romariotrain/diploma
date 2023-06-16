@@ -1,3 +1,4 @@
-from django.test import TestCase
+from orders.models import CustomUser
 
-# Create your tests here.
+user = CustomUser.objects.get(email='admin@mail.ru')
+print(user)
