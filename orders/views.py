@@ -86,7 +86,7 @@ class RegisterAccount(CreateAPIView):
                 if password1 == password2:
                     user.set_password(password1)
                     user.save()
-                    # new_user_registered.send(sender=self.__class__, user_id=user.id)
+                    new_user_registered.send(sender=self.__class__, user_id=user.id)
                     return HttpResponse({'Пользователь успешно создан'})
                 else:
                     return HttpResponse('Пароли не совпадают')
@@ -397,10 +397,6 @@ class OrderView(APIView):
                     if product_info:
                         shop = product_info.shop
                         if shop.state:
-                            if product_info.quantity < order_item.quantity:
-                                return Response('Товар закончился')
-                            product_info.quantity -= order_item.quantity
-                            product_info.save()
                             try:
                                 is_updated = Order.objects.filter(
                                     user_id=request.user.id, id=request.data['id']).update(
@@ -411,7 +407,11 @@ class OrderView(APIView):
                                 return JsonResponse({'Status': False, 'Errors': 'Неправильно указаны аргументы'})
                             else:
                                 if is_updated:
-                                    # new_order.send(sender=self.__class__, user_id=request.user.id)
+                                    if product_info.quantity < order_item.quantity:
+                                        return Response('Товар закончился')
+                                    product_info.quantity -= order_item.quantity
+                                    product_info.save()
+                                    new_order.send(sender=self.__class__, user_id=request.user.id)
                                     return JsonResponse({'Status': True})
                         else:
                             return Response('Магазин не работает')
