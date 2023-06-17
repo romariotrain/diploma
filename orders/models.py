@@ -20,10 +20,9 @@ STATE_CHOICES = (
     ('canceled', 'Отменен'),
 )
 
+
 class UserManager(BaseUserManager):
-    """
-    Миксин для управления пользователями
-    """
+
     use_in_migrations = True
 
     def create_user(self, email, password=None, **extra_fields):
@@ -39,9 +38,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """
-        Create and save a superuser with the given email and password.
-        """
+
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
@@ -58,14 +55,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     type = models.CharField(verbose_name='Тип пользователя', choices=USER_TYPE_CHOICES, max_length=100, default='buyer')
 
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'company', 'position']
 
     objects = UserManager()
-
-
-
 
     def __str__(self):
         return self.username
@@ -82,6 +75,7 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -111,12 +105,12 @@ class ProductInfo(models.Model):
     external_id = models.PositiveIntegerField(verbose_name='Внешний ИД')
 
 
-
 class Parameter(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
+
 
 class ProductParameter(models.Model):
     product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте',
@@ -124,8 +118,6 @@ class ProductParameter(models.Model):
                                      on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
     value = models.CharField(max_length=255)
-
-
 
 
 class Contact(models.Model):
@@ -159,7 +151,6 @@ class OrderItem(models.Model):
                                      on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
 
     def __str__(self):
         return str(self.product_info.model)
@@ -172,24 +163,23 @@ class ConfirmEmailToken(models.Model):
 
     @staticmethod
     def generate_key():
-        """ generates a pseudo random code using os.urandom and binascii.hexlify """
         return get_token_generator().generate_token()
 
     user = models.ForeignKey(
         CustomUser,
         related_name='confirm_email_tokens',
         on_delete=models.CASCADE,
-        verbose_name=("The User which is associated to this password reset token")
+        verbose_name="The User which is associated to this password reset token"
     )
 
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name=("When was this token generated")
+        verbose_name="When was this token generated"
     )
 
     # Key field, though it is not the primary key of the model
     key = models.CharField(
-        ("Key"),
+        "Key",
         max_length=64,
         db_index=True,
         unique=True
@@ -202,6 +192,3 @@ class ConfirmEmailToken(models.Model):
 
     def __str__(self):
         return "Password reset token for user {user}".format(user=self.user)
-
-
-

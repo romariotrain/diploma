@@ -10,10 +10,10 @@ from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView, ListAPIView
 import requests
 from orders.forms import CustomUserCreationForm
-from orders.models import ProductInfo, Product, Category, Shop, Parameter, ProductParameter, CustomUser, Order, \
+from orders.models import ProductInfo, Product, Category, Shop, Parameter, ProductParameter, Order, \
     OrderItem, Contact, ConfirmEmailToken
 from orders.serializers import CustomUserSerializer, ShopSerializer, CategorySerializer, ProductInfoSerializer, \
-    OrderItemSerializer, OrderSerializer, ContactSerializer
+    OrderSerializer, ContactSerializer
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
@@ -23,9 +23,7 @@ from orders.signals import new_order, new_user_registered
 
 
 class PartnerUpdate(APIView):
-    """
-    Класс для обновления прайса от поставщика
-    """
+
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
@@ -88,24 +86,19 @@ class RegisterAccount(CreateAPIView):
                 if password1 == password2:
                     user.set_password(password1)
                     user.save()
-                    new_user_registered.send(sender=self.__class__, user_id=user.id)
-                    return Response({'detail': 'User created successfully'})
+                    # new_user_registered.send(sender=self.__class__, user_id=user.id)
+                    return HttpResponse({'Пользователь успешно создан'})
                 else:
                     return HttpResponse('Пароли не совпадают')
             else:
-                return HttpResponse('!!!')
+                return HttpResponse('Не указаны необходимые аргументы')
         else:
             return Response(form.errors)
 
 
 class ConfirmAccount(APIView):
-    """
-    Класс для подтверждения почтового адреса
-    """
-    # Регистрация методом POST
-    def post(self, request, *args, **kwargs):
 
-        # проверяем обязательные аргументы
+    def post(self, request, *args, **kwargs):
         if {'email', 'token'}.issubset(request.data):
 
             token = ConfirmEmailToken.objects.filter(user__email=request.data['email'],
@@ -114,14 +107,11 @@ class ConfirmAccount(APIView):
                 token.user.is_active = True
                 token.user.save()
                 token.delete()
-                return JsonResponse({'Status': True})
+                return HttpResponse({'detail': 'Аккаунт подтверждён'})
             else:
                 return JsonResponse({'Status': False, 'Errors': 'Неправильно указан токен или email'})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
-
-
-
 
 
 class AccountDetails(APIView):
@@ -136,7 +126,6 @@ class AccountDetails(APIView):
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
-        # проверяем обязательные аргументы
 
         if 'password1' and 'password2' in request.data:
             password1 = request.data.get('password1')
@@ -182,17 +171,13 @@ class LoginAccount(APIView):
 
 
 class CategoryView(ListAPIView):
-    """
-    Класс для просмотра категорий
-    """
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class ShopView(ListAPIView):
-    """
-    Класс для просмотра списка магазинов
-    """
+
     queryset = Shop.objects.filter(state=True)
     serializer_class = ShopSerializer
 
@@ -225,8 +210,6 @@ class BasketView(APIView):
         serializer = OrderSerializer(basket, many=True)
         return Response(serializer.data)
 
-
-#при добавлении перемножить на quantity ещё
     def post(self, request):
         if request.method == 'POST':
             user = request.user
@@ -266,7 +249,7 @@ class BasketView(APIView):
                     return Response({'Status': True, 'Создано объектов': objects_created, 'Изменено количество объектов': objects_added})
             return Response({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
-#можно поиграться с количеством
+
     def delete(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
@@ -281,20 +264,14 @@ class BasketView(APIView):
                 if order_item_id.isdigit():
                     query = query | Q(order_id=basket.id, id=order_item_id)
                     objects_deleted = True
-
             if objects_deleted:
-                return HttpResponse(OrderItem.objects.filter(query).delete()[0])
                 deleted_count = OrderItem.objects.filter(query).delete()[0]
                 return Response({'Status': True, 'Удалено объектов': deleted_count})
         return Response({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
 
 class PartnerState(APIView):
-    """
-    Класс для работы со статусом поставщика
-    """
 
-    # получить текущий статус
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
@@ -407,25 +384,36 @@ class OrderView(APIView):
         serializer = OrderSerializer(order, many=True)
         return Response(serializer.data)
 
-
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
 
         if {'id', 'contact'}.issubset(request.data):
             if request.data['id'].isdigit():
-                try:
-                    is_updated = Order.objects.filter(
-                        user_id=request.user.id, id=request.data['id']).update(
-                        contact_id=request.data['contact'],
-                        state='new')
-                except IntegrityError as error:
-                    print(error)
-                    return JsonResponse({'Status': False, 'Errors': 'Неправильно указаны аргументы'})
-                else:
-                    if is_updated:
-                        new_order.send(sender=self.__class__, user_id=request.user.id)
-                        return JsonResponse({'Status': True})
+                order = Order.objects.get(id=request.data['id'])
+                order_items = order.ordered_items.all()
+                for order_item in order_items:
+                    product_info = order_item.product_info
+                    if product_info:
+                        shop = product_info.shop
+                        if shop.state:
+                            if product_info.quantity < order_item.quantity:
+                                return Response('Товар закончился')
+                            product_info.quantity -= order_item.quantity
+                            product_info.save()
+                            try:
+                                is_updated = Order.objects.filter(
+                                    user_id=request.user.id, id=request.data['id']).update(
+                                    contact_id=request.data['contact'],
+                                    state='new')
+                            except IntegrityError as error:
+                                print(error)
+                                return JsonResponse({'Status': False, 'Errors': 'Неправильно указаны аргументы'})
+                            else:
+                                if is_updated:
+                                    # new_order.send(sender=self.__class__, user_id=request.user.id)
+                                    return JsonResponse({'Status': True})
+                        else:
+                            return Response('Магазин не работает')
 
-        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
-
+            return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})

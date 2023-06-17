@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from orders.views import RegisterAccount, PartnerUpdate, AccountDetails, LoginAccount, CategoryView, ShopView, \
-    ProductInfoView, BasketView, PartnerState, ContactView, ConfirmAccount
+    ProductInfoView, BasketView, PartnerState, ContactView, ConfirmAccount, OrderView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,9 +29,9 @@ urlpatterns = [
     path('products/category/', CategoryView.as_view()),
     path('shop/', ShopView.as_view()),
     path('products/info/', ProductInfoView.as_view()),
-    path('basket/', BasketView.as_view()),
+    path('user/basket/', BasketView.as_view()),
     path('shop/state/', PartnerState.as_view()),
-    path('user/contact/', ContactView.as_view()),
-    path('user/confirm/', ConfirmAccount.as_view(),)
-
+    path('user/contacts/', ContactView.as_view()),
+    path('user/confirm/', ConfirmAccount.as_view(),),
+    path('user/orders/', OrderView.as_view())
 ]
