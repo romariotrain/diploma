@@ -1,19 +1,15 @@
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver, Signal
-from django_rest_passwordreset.signals import reset_password_token_created
-
+# from django_rest_passwordreset.signals import reset_password_token_created
+import time
 from orders.models import ConfirmEmailToken, CustomUser
+from celery import shared_task
 
-new_user_registered = Signal(
-)
+from django.core.mail import send_mail
+from django.conf import settings
 
-new_order = Signal(
-
-)
-
-
-
+@shared_task
 def password_reset_token_created(sender, instance, reset_password_token, **kwargs):
     """
     Отправляем письмо с токеном для сброса пароля
@@ -25,29 +21,22 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
     :return:
     """
     # send an e-mail to the user
-
-    msg = EmailMultiAlternatives(
-        # title:
-        f"Password Reset Token for {reset_password_token.user}",
-        # message:
-        reset_password_token.key,
-        # from:
-        settings.EMAIL_HOST_USER,
-        # to:
-        [reset_password_token.user.email]
-    )
-    msg.send()
+    subject = f"Password Reset Token for {reset_password_token.user}"
+    message = reset_password_token.key
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [reset_password_token.user.email]
+    send_mail(subject, message, from_email, recipient_list)
 
 
-@receiver(new_user_registered)
-def new_user_registered_signal(user_id, **kwargs):
+@shared_task
+def send_token_registration(user_id, **kwargs):
     """
     отправляем письмо с подтрердждением почты
     """
     # send an e-mail to the user
     token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user_id)
-
-    msg = EmailMultiAlternatives(
+    
+    send_mail(
         # title:
         f"Password Reset Token for {token.user.email}",
         # message:
@@ -57,18 +46,18 @@ def new_user_registered_signal(user_id, **kwargs):
         # to:
         [token.user.email]
     )
-    msg.send()
 
 
-@receiver(new_order)
+
+@shared_task
 def new_order_signal(user_id, **kwargs):
     """
     отправяем письмо при изменении статуса заказа
     """
-    # send an e-mail to the user
+
     user = CustomUser.objects.get(id=user_id)
 
-    msg = EmailMultiAlternatives(
+    send_mail(
         # title:
         f"Обновление статуса заказа",
         # message:
@@ -78,4 +67,9 @@ def new_order_signal(user_id, **kwargs):
         # to:
         [user.email]
     )
-    msg.send()
+
+@shared_task
+def a(a):
+    time.sleep(1)
+    return a
+

@@ -18,8 +18,13 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
+from django.core.mail import send_mail, BadHeaderError
+import smtplib
+from orders.mail import a
+import time
+import datetime
 
-from orders.signals import new_order, new_user_registered
+from orders.mail import send_token_registration, new_order_signal, new_order_signal
 
 
 class PartnerUpdate(APIView):
@@ -83,13 +88,10 @@ class RegisterAccount(CreateAPIView):
                 user = user_serializer.save()
                 password1 = request.data.get('password1')
                 password2 = request.data.get('password2')
-                if password1 == password2:
-                    user.set_password(password1)
-                    user.save()
-                    new_user_registered.send(sender=self.__class__, user_id=user.id)
-                    return HttpResponse({'Пользователь успешно создан'})
-                else:
-                    return HttpResponse('Пароли не совпадают')
+                user.set_password(password1)
+                user.save()
+                send_token_registration.delay(user_id=user.id)
+                return Response('User registered successfully')
             else:
                 return HttpResponse('Не указаны необходимые аргументы')
         else:
@@ -119,7 +121,6 @@ class AccountDetails(APIView):
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
-
         serializer = CustomUserSerializer(request.user)
         return Response(serializer.data)
 
@@ -172,8 +173,9 @@ class LoginAccount(APIView):
 
 class CategoryView(ListAPIView):
 
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    # queryset = Category.objects.all()
+    # serializer_class = CategorySerializer
+    start = datetime.datetime.now()
 
 
 class ShopView(ListAPIView):
