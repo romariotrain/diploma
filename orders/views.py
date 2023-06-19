@@ -7,6 +7,7 @@ from django.db.models import Q, Sum, F
 from django.http import JsonResponse, HttpResponse
 import json
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.generics import CreateAPIView, ListAPIView
 import requests
 from orders.forms import CustomUserCreationForm
@@ -178,8 +179,7 @@ class CategoryView(ListAPIView):
     start = datetime.datetime.now()
 
 
-class ShopView(ListAPIView):
-
+class ShopViewSet(viewsets.ModelViewSet):
     queryset = Shop.objects.filter(state=True)
     serializer_class = ShopSerializer
 
