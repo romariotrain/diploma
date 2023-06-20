@@ -152,10 +152,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_HOST_USER = 'romamorozevich@yandex.ru'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_PASSWORD = 'wsxanxpuuyonoeqz'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
+
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"

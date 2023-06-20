@@ -21,11 +21,11 @@ from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from django.core.mail import send_mail, BadHeaderError
 import smtplib
-from orders.mail import a
+from orders.mail import a, new_order
 import time
 import datetime
 
-from orders.mail import send_token_registration, new_order_signal, new_order_signal
+from orders.mail import send_token_registration, new_order
 
 
 class PartnerUpdate(APIView):
@@ -174,9 +174,8 @@ class LoginAccount(APIView):
 
 class CategoryView(ListAPIView):
 
-    # queryset = Category.objects.all()
-    # serializer_class = CategorySerializer
-    start = datetime.datetime.now()
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 class ShopViewSet(viewsets.ModelViewSet):
@@ -413,7 +412,7 @@ class OrderView(APIView):
                                         return Response('Товар закончился')
                                     product_info.quantity -= order_item.quantity
                                     product_info.save()
-                                    new_order.send(sender=self.__class__, user_id=request.user.id)
+                                    new_order(user_id=request.user.id)
                                     return JsonResponse({'Status': True})
                         else:
                             return Response('Магазин не работает')

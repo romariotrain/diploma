@@ -50,7 +50,7 @@ def send_token_registration(user_id, **kwargs):
 
 
 @shared_task
-def new_order_signal(user_id, **kwargs):
+def new_order(user_id, **kwargs):
     """
     отправяем письмо при изменении статуса заказа
     """

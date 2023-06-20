@@ -38,4 +38,5 @@ urlpatterns = [
     path('user/confirm/', ConfirmAccount.as_view(),),
     path('user/orders/', OrderView.as_view()),
     path('', include(router.urls)),
+
 ]
