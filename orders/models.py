@@ -104,6 +104,9 @@ class ProductInfo(models.Model):
     price_rrc = models.DecimalField(max_digits=10, decimal_places=2)
     external_id = models.PositiveIntegerField(verbose_name='Внешний ИД')
 
+    class Meta:
+        db_table = 'product_info'
+
 
 class Parameter(models.Model):
     name = models.CharField(max_length=255)
