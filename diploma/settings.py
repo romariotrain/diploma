@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'social_django',
     'rest_framework_social_oauth2',
+
 ]
 
 MIDDLEWARE = [
@@ -159,9 +160,6 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.open_id.OpenIdAuth',
-    'social_core.backends.google.GoogleOAuth2',
-    'social_core.backends.google.GoogleOAuth',
-    'social_core.backends.twitter.TwitterOAuth',
     'social_core.backends.github.GithubOAuth2',
     'social_core.backends.vk.VKOAuth2',
 
@@ -192,19 +190,25 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Your project description',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    # OTHER SETTINGS
+
 }
 
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
-
+#данные для приложения github для авторизации
 SOCIAL_AUTH_GITHUB_KEY = 'e84b8d42b2f3bb21f6af'
 SOCIAL_AUTH_GITHUB_SECRET = 'тут было'
 SOCIAL_AUTH_GITHUB_STATE_PARAMETER = True
 
-
+#Данные для приложения вк для авторизации
 SOCIAL_AUTH_VK_OAUTH2_KEY = '51686770'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = 'есть'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = ''
 SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
-SOCIAL_AUTH_VK_OAUTH2_REDIRECT_URI = 'http://yoursite.com/complete/vk-oauth2/'
+SOCIAL_AUTH_VK_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/complete/vk-oauth2/'
 SOCIAL_AUTH_VK_APP_USER_MODE = 0
+
+
+SOCIAL_AUTH_PIPELINE = (
+    # другие этапы конвейера
+    'diploma.signals.social_auth_user_created_handler',
+)

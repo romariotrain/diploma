@@ -49,3 +49,5 @@ urlpatterns = [
     path('', include('social_django.urls', namespace='social')),
 
 ]
+
+#/login/vk-oauth2 вход через вк
