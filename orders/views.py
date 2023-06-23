@@ -19,13 +19,12 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
-from django.core.mail import send_mail, BadHeaderError
-import smtplib
-from orders.mail import a, new_order
-import time
-import datetime
-
 from orders.mail import send_token_registration, new_order
+from drf_spectacular.views import SpectacularAPIView
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from django.conf import settings
+from social_django.models import UserSocialAuth
 
 
 class PartnerUpdate(APIView):
@@ -417,3 +416,18 @@ class OrderView(APIView):
                             return Response('Магазин не работает')
 
             return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+
+def home(request):
+    if request.user.is_authenticated:
+        try:
+            yandex_login = request.user.social_auth.get(provider='yandex-oauth2')
+        except UserSocialAuth.DoesNotExist:
+            yandex_login = None
+        return render(request, 'home.html', {'yandex_login': yandex_login})
+    else:
+        return redirect('login')
+
+def logout_view(request):
+    logout(request)
+    return redirect(settings.LOGOUT_REDIRECT_URL)

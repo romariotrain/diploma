@@ -21,8 +21,14 @@ from rest_framework import routers
 from orders.views import RegisterAccount, PartnerUpdate, AccountDetails, LoginAccount, CategoryView, ShopViewSet, \
     ProductInfoView, BasketView, PartnerState, ContactView, ConfirmAccount, OrderView
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 router = routers.DefaultRouter()
 router.register(r'shops', ShopViewSet, basename='shop')
+
+
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,5 +44,10 @@ urlpatterns = [
     path('user/confirm/', ConfirmAccount.as_view(),),
     path('user/orders/', OrderView.as_view()),
     path('', include(router.urls)),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
+    path('', include('social_django.urls', namespace='social')),
 
 ]
+
+#/login/vk-oauth2 вход через вк
