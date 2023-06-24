@@ -176,8 +176,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Данные от приложения яндекс почты
 EMAIL_HOST = 'smtp.yandex.ru'
-EMAIL_HOST_USER = 'romamorozevich@yandex.ru'
-EMAIL_HOST_PASSWORD = 'plpzzvhlosxlszkw'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
@@ -198,8 +198,8 @@ SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
 
 # Данные для приложения вк для авторизации
-SOCIAL_AUTH_VK_OAUTH2_KEY = '51686770'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = 'XrAPByeYOYeaFdvDViDj'
+SOCIAL_AUTH_VK_OAUTH2_KEY = 'id приложения'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'Приложение вк защищенный ключ'
 SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
 SOCIAL_AUTH_VK_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/'
 SOCIAL_AUTH_VK_APP_USER_MODE = 0
