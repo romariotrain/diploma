@@ -15,17 +15,7 @@ factory = APIRequestFactory()
 def client():
     return APIClient()
 
-@pytest.fixture(scope='module')
-def db_conn():
-    conn = psycopg2.connect(
-        dbname='orders',
-        user='postgres',
-        password='1234',
-        host='127.0.0.1',
-        port='5431'
-    )
-    yield conn
-    conn.close()
+
 
 
 @pytest.fixture
@@ -101,9 +91,8 @@ def test_post_user_info(client):
 @pytest.mark.django_db
 def test_get_products_info(client):
     response1 = client.get('http://127.0.0.1:8000/products/info/')
-    # response2 = client.get('http://127.0.0.1:8000/products/info?shop_id=11')
     assert response1.status_code == status.HTTP_200_OK
-    # assert response2.status_code == status.HTTP_200_OK
+
 
 
 @pytest.mark.django_db
@@ -129,16 +118,10 @@ def test_get_basket_info(client):
     response = client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
-@pytest.mark.django_db
-def test_all_products(db_conn, client):
-    cursor = db_conn.cursor()
-    cursor.execute('SELECT * FROM product_info')
-    results = cursor.fetchall()
-    assert len(results) == 8
 
+# Добавление заказа в корзину
 @pytest.mark.django_db
 def test_product_info(client,user):
-    print(user)
 
     shop = Shop.objects.create(
         name='My Shop',

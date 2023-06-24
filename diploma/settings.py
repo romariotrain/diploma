@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'orders',
 
+    'orders',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'social_django',
     'rest_framework_social_oauth2',
+    'silk',
 
 ]
 
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'silk.middleware.SilkyMiddleware',
 ]
 
 ROOT_URLCONF = 'diploma.urls'
@@ -159,8 +161,6 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.open_id.OpenIdAuth',
-    'social_core.backends.github.GithubOAuth2',
     'social_core.backends.vk.VKOAuth2',
 
     'django.contrib.auth.backends.ModelBackend',
@@ -174,9 +174,10 @@ LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_USE_TLS = True
 
+# Данные от приложения яндекс почты
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_HOST_USER = 'romamorozevich@yandex.ru'
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_PASSWORD = 'plpzzvhlosxlszkw'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 SERVER_EMAIL = EMAIL_HOST_USER
@@ -195,20 +196,22 @@ SPECTACULAR_SETTINGS = {
 
 SOCIAL_AUTH_JSONFIELD_ENABLED = True
 
-#данные для приложения github для авторизации
-SOCIAL_AUTH_GITHUB_KEY = 'e84b8d42b2f3bb21f6af'
-SOCIAL_AUTH_GITHUB_SECRET = 'тут было'
-SOCIAL_AUTH_GITHUB_STATE_PARAMETER = True
 
-#Данные для приложения вк для авторизации
+# Данные для приложения вк для авторизации
 SOCIAL_AUTH_VK_OAUTH2_KEY = '51686770'
-SOCIAL_AUTH_VK_OAUTH2_SECRET = ''
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'XrAPByeYOYeaFdvDViDj'
 SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
-SOCIAL_AUTH_VK_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/complete/vk-oauth2/'
+SOCIAL_AUTH_VK_OAUTH2_REDIRECT_URI = 'http://127.0.0.1:8000/'
 SOCIAL_AUTH_VK_APP_USER_MODE = 0
 
 
 SOCIAL_AUTH_PIPELINE = (
-    # другие этапы конвейера
-    'diploma.signals.social_auth_user_created_handler',
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'orders.pipeline.check_email', # добавляем наш пользовательский шаг
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
 )

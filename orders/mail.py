@@ -1,13 +1,10 @@
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
-from django.dispatch import receiver, Signal
-# from django_rest_passwordreset.signals import reset_password_token_created
-import time
 from orders.models import ConfirmEmailToken, CustomUser
 from celery import shared_task
 
 from django.core.mail import send_mail
 from django.conf import settings
+
 
 @shared_task
 def password_reset_token_created(sender, instance, reset_password_token, **kwargs):
@@ -68,8 +65,24 @@ def new_order(user_id, **kwargs):
         [user.email]
     )
 
+
 @shared_task
-def a(a):
-    time.sleep(1)
-    return a
+def password_mail(user_id, password, **kwargs):
+    """
+    отправяем письмо с паролем при регистрации через социальную сеть. Нужно буде с паролем залогиниться, что
+    бы получить токен
+    """
+
+    user = CustomUser.objects.get(id=user_id)
+
+    send_mail(
+        # title:
+        f"токен",
+        # message:
+        f"password: {password}",
+        # from:
+        settings.EMAIL_HOST_USER,
+        # to:
+        [user.email]
+    )
 
